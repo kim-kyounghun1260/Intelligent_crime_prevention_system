@@ -119,24 +119,24 @@ void followObject(float avgL, float avgR, float avgT) {
   if (minDistance == avgT && avgT < threshold) {
     // 위쪽으로 이동
     if (posUD < 180) {
-      posUD += 2; // 한 번에 작은 각도로 이동
+      posUD += 5; // 한 번에 작은 각도로 이동
       UDSubmotor.write(posUD);
       Serial.println("Moving Up");
     }
   } else if (avgT > threshold) {
     // 위쪽에서 아래로 복귀
     if (posUD > 90) {
-      posUD -= 2;
+      posUD -= 5;
       UDSubmotor.write(posUD);
       Serial.println("Returning Down");
     } else {
       // 아래로 복귀 후 좌우 이동
       if (minDistance == avgL && avgL < threshold) {
-        if (posLR > 30) posLR -= 2;
+        if (posLR > 30) posLR -= 5;
         LRSubmotor.write(posLR);
         Serial.println("Moving Left");
       } else if (minDistance == avgR && avgR< threshold) {
-        if (posLR < 150) posLR += 2;
+        if (posLR < 150) posLR += 5;
         LRSubmotor.write(posLR);
         Serial.println("Moving Right");
       }
