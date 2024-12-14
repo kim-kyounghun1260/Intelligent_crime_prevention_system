@@ -15,7 +15,7 @@ const int echoPin_T = 3; // 위쪽 초음파 센서 echoPin
 
 const int pirpin = 8; // pir센서가 연결된 핀번호
 const int led = 9; // led 핀
-const int buzer = 1; // 부저핀
+const int buzer = A1; // 부저핀
 
 int posLR = 90; // 좌우 서보모터 각도 초기값
 int posUD = 90; // 상하 서보모터 각도 초기값
@@ -40,6 +40,10 @@ void setup() {
 
   LRSubmotor.write(posLR);
   UDSubmotor.write(posUD);
+
+  pinMode(pirpin,INPUT);
+  pinMode(led,OUTPUT);
+  pinMode(buzer,OUTPUT);
 
   pinMode(trigPin_L, OUTPUT);
   pinMode(echoPin_L, INPUT);
@@ -133,18 +137,19 @@ void followObject(float avgL, float avgR, float avgT) {
 }
 
 void motion_tracking(){
-  int motion = digitalRead(pirPin); //PIR 센서 감지
+  int motion = digitalRead(pirpin); //PIR 센서 감지
   if (motion == HIGH) {  // 움직임이 감지되면
     Serial.print("동작이 감지되었습니다.");
     buzer_led();
-    delay(2000);
+    //delay(2000);
   }
 }
 
 void buzer_led(){
   digitalWrite(led, HIGH); // LED 켜기
+  tone(buzer, 494, 500);
   digitalWrite(buzer, HIGH); // 부저 켜기
-  delay(1000); // 1초 동안 켜짐
+  delay(50); // 1초 동안 켜짐
   digitalWrite(led, LOW); // LED 끄기
-  digitalWrite(buzer, LOW); // 부저 끄기
+  //digitalWrite(buzer, LOW); // 부저 끄기
 }
