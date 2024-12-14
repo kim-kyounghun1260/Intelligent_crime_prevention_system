@@ -1,8 +1,13 @@
 #include <Servo.h>
+#include <SoftwareSerial.h>
+//HC-06 시리얼창에서 "line ending 없음" 설정할것
 
 Servo LRSubmotor; // 좌우 서보모터
 Servo UDSubmotor; // 상하 서보모터
 
+const int Tx = 12;//전송 보내는핀
+const int Rx = 13;//수신 받는핀
+SoftwareSerial BtSerial(Tx,Rx);
 
 const int trigPin_R = 6; // 오른쪽 초음파 센서 trigPin
 const int echoPin_R = 7; // 오른쪽 초음파 센서 echoPin
@@ -44,7 +49,7 @@ void setup() {
   pinMode(pirpin,INPUT);
   pinMode(led,OUTPUT);
   pinMode(buzer,OUTPUT);
-
+ 
   pinMode(trigPin_L, OUTPUT);
   pinMode(echoPin_L, INPUT);
 
@@ -53,6 +58,9 @@ void setup() {
 
   pinMode(trigPin_T, OUTPUT);
   pinMode(echoPin_T, INPUT);
+
+  Serial.begin(9600);
+  BtSerial.begin(9600);
 }
 
 void loop() {
@@ -140,14 +148,21 @@ void motion_tracking(){
   int motion = digitalRead(pirpin); //PIR 센서 감지
   if (motion == HIGH) {  // 움직임이 감지되면
     Serial.print("동작이 감지되었습니다.");
+    //BtSerial.write("방범 장치에 사람이 감지되었습니다!");
     buzer_led();
-    //delay(2000);
+    //delay(50);
   }
 }
 
 void buzer_led(){
   digitalWrite(led, HIGH); // LED 켜기
   tone(buzer, 494, 500);
+  digitalWrite(buzer, HIGH); // 부저 켜기
+  delay(50); // 1초 동안 켜짐
+  digitalWrite(led, LOW); // LED 끄기
+  //digitalWrite(buzer, LOW); // 부저 끄기
+}
+
   digitalWrite(buzer, HIGH); // 부저 켜기
   delay(50); // 1초 동안 켜짐
   digitalWrite(led, LOW); // LED 끄기
