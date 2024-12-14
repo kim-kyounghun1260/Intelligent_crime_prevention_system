@@ -162,9 +162,3 @@ void buzer_led(){
   digitalWrite(led, LOW); // LED 끄기
   //digitalWrite(buzer, LOW); // 부저 끄기
 }
-
-  digitalWrite(buzer, HIGH); // 부저 켜기
-  delay(50); // 1초 동안 켜짐
-  digitalWrite(led, LOW); // LED 끄기
-  //digitalWrite(buzer, LOW); // 부저 끄기
-}
