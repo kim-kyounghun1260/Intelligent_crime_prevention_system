@@ -27,9 +27,9 @@ int posUD = 90; // 상하 서보모터 각도 초기값
 
 const int threshold = 100; // 한계 거리
 bool objectDetected = false; // 물체 감지 여부
-const int smoothingSamples = 3; // 평균을 위한 샘플 수 3
+const int smoothingSamples = 5; // 평균을 위한 샘플 수 3
 
-float distances[3][smoothingSamples] = {0}; // 센서별 거리값 저장 [센서][시간]
+float distances[5][smoothingSamples] = {0}; // 센서별 거리값 저장 [센서][시간]
 int sampleIndex = 0; // 현재 샘플 인덱스
 
 // 함수 선언
@@ -37,17 +37,22 @@ float measureDistance(int trigPin, int echoPin);
 float averageDistance(float *values);
 void followObject(float avgL, float avgR, float avgT);
 
-const int servoPin = 11; // Define the servo pin
 int maxDistance = 400; // Define max distance
 
 // Variables for the duration and the distance
 long duration;
+long durationB;
+long durationC;
 int distance;
-Servo servo;
+int distanceB;
+int distanceC;
+
+int distance_A = 400;
+int distance_B = 400;
+int distance_C = 400;
 
 void setup() {
   Serial.begin(9600);
-  servo.attach(servoPin); // Defines on which pin the servo motor is attached
   LRSubmotor.attach(11); // 좌우 서보모터 핀
   UDSubmotor.attach(10); // 상하 서보모터 핀
 
@@ -67,7 +72,7 @@ void setup() {
   pinMode(trigPin_T, OUTPUT);
   pinMode(echoPin_T, INPUT);
 
-  servo.write(0);
+  //servo.write(0);
   Serial.println("초음파 센서 스캔 시작");
   Serial.begin(9600);
   BtSerial.begin(9600);
@@ -75,14 +80,43 @@ void setup() {
 
 void loop() {
   short_distance();
-
-  while (true) {
-    if (maxDistance > distance)
-      find_object();
-    else
+  while (1){
+    if (maxDistance < distance_A && maxDistance < distance_B && maxDistance < distance_C){
+      if (maxDistance > distance_A || maxDistance > distance_B || maxDistance > distance_C){
+        break;
+      }
       radar();
+    }
+    else if (maxDistance > distance_A || maxDistance > distance_B || maxDistance > distance_C){
+      find_object();
+    }
   }
 }
+
+int L_calculateDistance() {
+
+  digitalWrite(trigPin_L, LOW); 
+  delayMicroseconds(2);
+  digitalWrite(trigPin_L, HIGH); 
+  delayMicroseconds(10);
+  digitalWrite(trigPin_L, LOW);
+  durationB = pulseIn(echoPin_L, HIGH);
+  distanceB = durationB * 0.034 / 2;
+
+  return distanceB;
+}
+
+int R_calculateDistance() {
+  digitalWrite(trigPin_R, LOW); 
+  delayMicroseconds(2);
+  digitalWrite(trigPin_R, HIGH); 
+  delayMicroseconds(10);
+  digitalWrite(trigPin_R, LOW);
+  durationC = pulseIn(echoPin_R, HIGH);
+  distanceC = durationC * 0.034 / 2;
+  return distanceC;
+}
+
 
 int calculateDistance() {
   digitalWrite(trigPin_T, LOW); 
@@ -96,49 +130,57 @@ int calculateDistance() {
 }
 
 void radar() {
-  for (int i = 15; i <= 165; i++) {
-    servo.write(i);
+  for (int posLR = 15; posLR <= 165; posLR++) {
+    LRSubmotor.write(posLR);
     delay(30);
     distance = calculateDistance();
-    Serial.print(i);
+    distance_A = calculateDistance();
+    distance_B = L_calculateDistance();
+    distance_C = R_calculateDistance();
+    Serial.print(posLR);
     Serial.print(",");
     Serial.print(distance);
     Serial.print(".");
+    //return distance;
   }
 
-  for (int i = 165; i > 15; i--) {
-    servo.write(i);
+  for (int posLR = 165; posLR > 15; posLR--) {
+    LRSubmotor.write(posLR);
     delay(30);
     distance = calculateDistance();
-    Serial.print(i);
+    distance_A = calculateDistance();
+    distance_B = L_calculateDistance();
+    distance_C = R_calculateDistance();
+    Serial.print(posLR);
     Serial.print(",");
     Serial.print(distance);
     Serial.print(".");
+    //return distance;
   }
 }
 
 void short_distance() {
   int minDistance = 9999; 
   int minAngle = 0;
-  for (int angle = 15; angle <= 165; angle++) {
-    servo.write(angle);
+  for (int posLR = 15; posLR <= 165; posLR++) {
+     LRSubmotor.write(posLR);
     delay(30);
     float distance = calculateDistance();
     Serial.print("각도: ");
-    Serial.print(angle);
+    Serial.print(posLR);
     Serial.print("°, 거리: ");
-    if (distance <= 50 && distance != -1) {
-      Serial.println("(50cm 이내)");
-    } else if (distance > 50) {
+    if (distance <= 15 && distance != -1) {
+      Serial.println("(15cm 이내)");
+    } else if (distance > 15) {
       Serial.print(distance);
       Serial.println(" cm");
     } else {
       Serial.println("4m");
     }
 
-    if (distance > 50 && distance < minDistance) {
+    if (distance > 15 && distance < minDistance) {
       minDistance = distance;
-      minAngle = angle;
+      minAngle = posLR;
     }
   }
 
@@ -158,8 +200,8 @@ void short_distance() {
   }
   Serial.println("---------------------");
 
-  for (int angle = 165; angle >= 15; angle--) {
-    servo.write(angle);
+  for (int posLR = 165; posLR >= 15; posLR--) {
+     LRSubmotor.write(posLR);
     delay(30);
   }
   delay(1000);
@@ -175,9 +217,9 @@ float measureDistance() {
   long duration = pulseIn(echoPin_T, HIGH);
   float distance = duration * 0.034 / 2;
 
-  if (distance > 50 && distance <= maxDistance) {
+  if (distance > 15 && distance <= maxDistance) {
     return distance;
-  } else if (distance <= 50) {
+  } else if (distance <= 15) {
     return distance;
   } else {
     return -1;
