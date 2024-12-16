@@ -76,20 +76,16 @@ void setup() {
   Serial.println("초음파 센서 스캔 시작");
   Serial.begin(9600);
   BtSerial.begin(9600);
+  short_distance();
 }
 
 void loop() {
-  short_distance();
-  while (1){
-    if (maxDistance < distance_A && maxDistance < distance_B && maxDistance < distance_C){
-      if (maxDistance > distance_A || maxDistance > distance_B || maxDistance > distance_C){
-        break;
-      }
-      radar();
-    }
-    else if (maxDistance > distance_A || maxDistance > distance_B || maxDistance > distance_C){
-      find_object();
-    }
+  if (maxDistance < distance_A && maxDistance < distance_B && maxDistance < distance_C){
+    radar();
+  }
+  else{
+    LRSubmotor.write(posLR);
+    find_object();
   }
 }
 
@@ -131,6 +127,9 @@ int calculateDistance() {
 
 void radar() {
   for (int posLR = 15; posLR <= 165; posLR++) {
+    if (maxDistance > distance_A || maxDistance > distance_B || maxDistance > distance_C){
+      break;
+    }
     LRSubmotor.write(posLR);
     delay(30);
     distance = calculateDistance();
@@ -145,6 +144,9 @@ void radar() {
   }
 
   for (int posLR = 165; posLR > 15; posLR--) {
+    if (maxDistance > distance_A || maxDistance > distance_B || maxDistance > distance_C){
+      break;
+    }
     LRSubmotor.write(posLR);
     delay(30);
     distance = calculateDistance();
@@ -272,6 +274,7 @@ void motion_tracking(){
 }
 
 void buzer_led(){
+  //BtSerial.write("방범 장치에 사람이 감지되었습니다!");
   digitalWrite(led, HIGH); // LED 켜기
   tone(buzer, 494, 500);
   digitalWrite(buzer, HIGH); // 부저 켜기
